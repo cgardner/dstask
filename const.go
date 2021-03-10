@@ -93,6 +93,9 @@ const (
 	FG_PRIORITY_NORMAL   = FG_DEFAULT
 	FG_PRIORITY_LOW      = 245
 	FG_NOTE              = 240
+
+	LOG_DEBUG = "debug"
+	LOG_ERROR = "error"
 )
 
 // for import (etc) it's necessary to have full context
@@ -169,4 +172,9 @@ var ALL_CMDS = []string{
 	CMD_COMPLETIONS,
 	CMD_HELP,
 	CMD_VERSION,
+}
+
+var ALL_LOG_LEVELS = []string{
+	LOG_DEBUG,
+	LOG_ERROR,
 }

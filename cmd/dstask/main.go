@@ -2,9 +2,12 @@ package main
 
 import (
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/naggie/dstask"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 )
 
 func main() {
@@ -16,11 +19,16 @@ func main() {
 	}
 
 	conf := dstask.NewConfig()
+	initLogger(conf.Repo)
+
 	dstask.EnsureRepoExists(conf.Repo)
 
 	// Load state for getting and setting ctx
 	state := dstask.LoadState(conf.StateFile)
 	ctx := state.Context
+
+	log.Debug().Msg("Loaded")
+
 	query := dstask.ParseQuery(os.Args[1:]...)
 
 	// Check if we have a context override.
@@ -166,4 +174,32 @@ func main() {
 	default:
 		panic("this should never happen?")
 	}
+}
+
+func initLogger(logRoot string) {
+	zerolog.SetGlobalLevel(zerolog.Disabled)
+
+	logLevel := os.Getenv("DSTASK_LOG_LEVEL")
+	if !dstask.StrSliceContains(dstask.ALL_LOG_LEVELS, logLevel) {
+		return
+	}
+
+	logFileName := filepath.Join(logRoot, "dstask.log")
+
+	logFile, err := os.OpenFile(logFileName, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0777)
+	if err != nil {
+		return // Don't set up the logger
+	}
+
+	log.Logger = zerolog.New(logFile).With().Caller().Logger()
+
+	if logLevel == dstask.LOG_DEBUG {
+		zerolog.SetGlobalLevel(zerolog.TraceLevel)
+		return
+	}
+
+	if logLevel == dstask.LOG_ERROR {
+		zerolog.SetGlobalLevel(zerolog.PanicLevel)
+	}
+	log.Logger = log.With().Caller().Logger()
 }
