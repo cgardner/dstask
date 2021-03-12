@@ -7,6 +7,8 @@ import (
 	"os"
 	"strconv"
 	"strings"
+
+	"github.com/rs/zerolog/log"
 )
 
 // when referring to tasks by ID, NON_RESOLVED_STATUSES must be loaded exclusively --
@@ -173,12 +175,14 @@ func (query *Query) Merge(q2 Query) Query {
 
 	for _, tag := range q2.Tags {
 		if !StrSliceContains(q.Tags, tag) {
+			log.Trace().Str("tag", tag).Msg("Adding Tag")
 			q.Tags = append(q.Tags, tag)
 		}
 	}
 
 	for _, tag := range q2.AntiTags {
 		if !StrSliceContains(q.AntiTags, tag) {
+			log.Trace().Str("antitag", tag).Msg("Adding AntiTag")
 			q.AntiTags = append(q.AntiTags, tag)
 		}
 	}
@@ -187,6 +191,7 @@ func (query *Query) Merge(q2 Query) Query {
 		if q.Project != "" && q.Project != q2.Project {
 			ExitFail("Could not apply q2, project conflict")
 		} else {
+			log.Trace().Str("project", q2.Project).Msg("Setting Project")
 			q.Project = q2.Project
 		}
 	}
@@ -195,6 +200,7 @@ func (query *Query) Merge(q2 Query) Query {
 		if q.Priority != "" {
 			ExitFail("Could not apply q2, priority conflict")
 		} else {
+			log.Trace().Str("priority", q2.Priority).Msg("Setting Priority")
 			q.Priority = q2.Priority
 		}
 	}
